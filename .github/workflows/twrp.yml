@@ -11,7 +11,7 @@ env:
   # (required) device codename i.e: sweet mojito.. 
   DEVICE: Infinix-X682B
   # (required) device tree link with branch if exists
-  DT_LINK: https://github.com/Louayebdev807/tree_device_infinix_Infinix-X682B/commit/b12f8f109ff48fd23fa5f0ba3dcb3a2e0ad427ef
+  DT_LINK: https://github.com/Louayebdev807/tree_device_infinix_Infinix-X682B.git
   # (required) who made your phone ? 
   MANUFACTURER: Infinix
   # (required) recovery partiton = recovery, else (no recovery partition): boot 
