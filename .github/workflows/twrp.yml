@@ -5,17 +5,17 @@ on:
 
 env:
   # (required) twrp manifest 
-  MANIFEST: https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git
+  MANIFEST: https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git
   # (required) manifest branch 
-  BRANCH: twrp-11
+  BRANCH: twrp-12
   # (required) device codename i.e: sweet mojito.. 
-  DEVICE: Infinix-X682B
+  DEVICE: nubia-NX669J
   # (required) device tree link with branch if exists
-  DT_LINK: https://github.com/Louayebdev807/tree_device_infinix_Infinix-X682B.git
+  DT_LINK: https://github.com/twrpdtgen/android_device_nubia_NX669J.git
   # (required) who made your phone ? 
-  MANUFACTURER: Infinix
+  MANUFACTURER: nubia
   # (required) recovery partiton = recovery, else (no recovery partition): boot 
-  TARGET: recovery
+  TARGET: boot
   # dont change that
   IMAGE: image
   # (required) depend of device tree if you see twrp_"codename".mk use twrp
@@ -25,7 +25,7 @@ env:
   SYM: _
   # (required) output format for some reason samsung phones need a custom mkbootimg
   # which compress your recovery into .tar (default: .img / samsung + custom mkbootimg: .tar) 
-  FORMAT: .tar
+  FORMAT: .img
 
 jobs:
   build:
