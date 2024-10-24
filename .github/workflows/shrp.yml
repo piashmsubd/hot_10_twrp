@@ -9,13 +9,13 @@ env:
   # (required) manifest branch 
   BRANCH: v3_10.0
   # (required) device codename i.e: sweet mojito.. 
-  DEVICE: j7xelte
+  DEVICE: NX669J
   # (required) device tree link with branch 
-  DT_LINK: https://github.com/TeamWin/android_device_samsung_j7xelte
+  DT_LINK: https://github.com/twrpdtgen/android_device_nubia_NX669J.git
   # (required) who made your phone ? 
-  MANUFACTURER: samsung
+  MANUFACTURER: nubia
   # (required) recovery partiton = recovery, else (no recovery partition): boot 
-  TARGET: recovery
+  TARGET: boot
   # dont change that
   IMAGE: image
   # (required) depend of device tree if you see twrp_"codename".mk use twrp
