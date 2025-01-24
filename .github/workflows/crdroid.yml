@@ -1,39 +1,48 @@
-name: nubia-sm8350-kernel
-adopt-info: kernel
+name: Nubia SM8350 Kernel Build
 
-parts:
-  kernel:
-    plugin: kernel
-    source: https://github.com/piashmsubd/android_kernel_nubia_sm8350.git
-    source-type: git
-    kernel-image-target: Image.gz
-    kernel-compiler: gcc
-    kernel-compiler-version: "10"
-    kernel-initrd-modules:
-      - ext4
-      - vfat
-    kernel-device-trees:
-      - nubia-sm8350
-    build-packages:
-      - bc
-      - build-essential
-      - libssl-dev
-      - flex
-      - bison
-    override-build: |
-      make defconfig
-      make -j$(nproc)
-      snapcraftctl set-version $(make kernelversion)
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
-  firmware:
-    plugin: dump
-    source: firmware/
-    organize:
-      '*': lib/firmware/
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout kernel source
+      uses: actions/checkout@v2
 
-slots:
-  kernel-module-control:
-  hardware-observe:
-  system-observe:
-  system-trace:
+    - name: Setup build environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 
+    - name: Configure kernel
+      run: |
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        make vendor/nubia_sm8350_defconfig
+
+    - name: Build kernel
+      run: |
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        make -j$(nproc --all)
+
+    - name: Pack kernel
+      run: |
+        mkdir -p AnyKernel3
+        cp arch/arm64/boot/Image.gz AnyKernel3/
+        cp arch/arm64/boot/dtbo.img AnyKernel3/
+        cp arch/arm64/boot/dts/vendor/qcom/*.dtb AnyKernel3/
+
+    - name: Upload kernel package
+      uses: actions/upload-artifact@v2
+      with:
+        name: Nubia-SM8350-Kernel
+        path: AnyKernel3/*
