@@ -42,7 +42,7 @@ jobs:
         cp arch/arm64/boot/dts/vendor/qcom/*.dtb AnyKernel3/
 
     - name: Upload kernel package
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: Nubia-SM8350-Kernel
         path: AnyKernel3/*
