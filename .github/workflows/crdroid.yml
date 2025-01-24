@@ -1,56 +1,39 @@
-name: Building crdroid
+name: nubia-sm8350-kernel
+adopt-info: kernel
 
-on:
-#  release:
-#    types: [published]
-#  push:
-#    branches:
-#      - master
-#    paths:
-#      - '.config'
-#  schedule:
-#    - cron: 0 8 * * 5
-#  tested on android 8.1
-  workflow_dispatch:
+parts:
+  kernel:
+    plugin: kernel
+    source: https://github.com/piashmsubd/android_kernel_nubia_sm8350.git
+    source-type: git
+    kernel-image-target: Image.gz
+    kernel-compiler: gcc
+    kernel-compiler-version: "10"
+    kernel-initrd-modules:
+      - ext4
+      - vfat
+    kernel-device-trees:
+      - nubia-sm8350
+    build-packages:
+      - bc
+      - build-essential
+      - libssl-dev
+      - flex
+      - bison
+    override-build: |
+      make defconfig
+      make -j$(nproc)
+      snapcraftctl set-version $(make kernelversion)
 
-env:
-  MANIFEST: https://github.com/crdroidandroid/android.git -b 10.0
-  DEVICE: m10lte
-  DT_LINK: https://github.com/Hostfl/android_device_samsung_m10lte -b crdroid
-  DT_PATH: device/samsung/m10lte
-  TZ: Europe/London
+  firmware:
+    plugin: dump
+    source: firmware/
+    organize:
+      '*': lib/firmware/
 
-jobs:
-  build:
-    runs-on: ubuntu-18.04
+slots:
+  kernel-module-control:
+  hardware-observe:
+  system-observe:
+  system-trace:
 
-    steps:
-       - name: Checkout
-         uses: actions/checkout@master
-         
-
-       - name: Initializing environment
-         run: |
-             git clone https://github.com/SA-17/rm-pkg p && cd p && bash setup.sh
-
-            
-       - name: Sync recovery source and device tree
-         run: |
-             mkdir work
-             cd work
-             repo init -u $MANIFEST --depth=1
-             repo sync -c -j100 --force-sync --no-clone-bundle --no-tags
-             git clone $DT_LINK $DT_PATH --depth=1            
-             
-       - name: Build
-         run: |
-              cd work
-              . build/envsetup.sh && brunch $DEVICE
-              zip crdroid.zip /home/runner/work/Recovery_builder/Recovery_builder/work/out/target/product/$DEVICE/*droid*
-             
-       - name: Save
-         uses: actions/upload-artifact@v3
-         with:
-            name: crdroid.zip
-            path: /home/runner/work/Recovery_builder/Recovery_builder/work/crdroid.zip
-            retention-days: 5
