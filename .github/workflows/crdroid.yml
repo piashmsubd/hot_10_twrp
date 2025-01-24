@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.08
     steps:
     - name: Checkout kernel source
       uses: actions/checkout@v2
