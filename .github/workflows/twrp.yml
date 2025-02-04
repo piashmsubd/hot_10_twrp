@@ -1,66 +1,43 @@
-name: Building Twrp
+name: Build TWRP Recovery
 
 on:
-  workflow_dispatch:
-
-env:
-  # (required) twrp manifest 
-  MANIFEST: https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git
-  # (required) manifest branch 
-  BRANCH: twrp-12
-  # (required) device codename i.e: sweet mojito.. 
-  DEVICE: nubia-NX669J
-  # (required) device tree link with branch if exists
-  DT_LINK: https://github.com/twrpdtgen/android_device_nubia_NX669J.git
-  # (required) who made your phone ? 
-  MANUFACTURER: nubia
-  # (required) recovery partiton = recovery, else (no recovery partition): boot 
-  TARGET: boot
-  # dont change that
-  IMAGE: image
-  # (required) depend of device tree if you see twrp_"codename".mk use twrp
-  # else (omni_"codename".mk): omni
-  OT: twrp
-  # dont change that
-  SYM: _
-  # (required) output format for some reason samsung phones need a custom mkbootimg
-  # which compress your recovery into .tar (default: .img / samsung + custom mkbootimg: .tar) 
-  FORMAT: .img
+  push:
+    branches:
+      - Twrp_12.1
+  pull_request:
+    branches:
+      - Twrp_12.1
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
-       - name: Checkout
-         uses: actions/checkout@master
-                               
-       - name: remove pkg and setting repo
-         run: |
-            sudo apt update && sudo apt install git
-            git clone https://github.com/SA-17/rm_pkg pkg && cd pkg && bash setup.sh
-            cd .. && sudo -E apt-get -qq update
-            sudo -E apt-get -qq install bc build-essential tar zip curl libstdc++6 git wget python gcc clang libssl-dev repo rsync flex curl  bison aria2
-            sudo curl --create-dirs -L -o /usr/local/bin/repo -O -L https://storage.googleapis.com/git-repo-downloads/repo
-            sudo chmod a+rx /usr/local/bin/repo
-            
-       - name: Adding and Sync source
-         run: |   
-             mkdir work
-             cd work
-             repo init -u $MANIFEST -b $BRANCH --depth=1              
-             repo sync -c -j700 --force-sync --no-clone-bundle --no-tags
-             git clone $DT_LINK --depth=1 --single-branch device/$MANUFACTURER/$DEVICE          
-             
-       - name: Build twrp
-         run: |
-              cd work
-              . build/envsetup.sh && lunch $OT$SYM$DEVICE-eng && export ALLOW_MISSING_DEPENDENCIES=true && mka $TARGET$IMAGE -j60
-              zip twrp.zip /home/runner/work/Recovery_builder/Recovery_builder/work/out/target/product/$DEVICE/$TARGET$FORMAT
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-       - name: Save in artifact
-         uses: actions/upload-artifact@v3
-         with:
-            name: recovery.zip
-            path: /home/runner/work/Recovery_builder/Recovery_builder/work/twrp.zip
-            retention-days: 5
+    - name: Set up environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig python3 python3-pip
+
+    - name: Set up repo
+      run: |
+        mkdir -p ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+x ~/bin/repo
+        export PATH=~/bin:$PATH
+
+    - name: Initialize repo
+      run: |
+        repo init -u https://github.com/piashmsubd/TWRP_NX669J_12.1.git -b Twrp_12.1
+
+    - name: Sync repo
+      run: |
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+    - name: Build TWRP
+      run: |
+        source build/envsetup.sh
+        lunch twrp_NX669J-eng
+        mka recoveryimage
